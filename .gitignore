@@ -1,0 +1,24 @@
+# Local assets
+assets/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.venv/
+env/
+venv/
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+build_render_color.ps1
+build_render.ps1
+decode_color_png.ps1
+decode_png.ps1
+glitch_color_out.json
+glitch_out.json
+render_glitch_color.js
+render_glitch.js

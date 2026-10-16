@@ -1,0 +1,30 @@
+{
+  "name": "glitchit",
+  "version": "1.0.0",
+  "style": "Untitled.jpg Editorial Digital Surrealism",
+  "palette": {
+    "defaultDuotone": {
+      "shadow": "#101010",
+      "highlight": "#E84A5F"
+    },
+    "namedPresets": {
+      "untitledCoral": { "shadow": "#101010", "highlight": "#E84A5F" },
+      "duskyRose": { "shadow": "#121212", "highlight": "#FF8484" },
+      "terminalPhosphor": { "shadow": "#050505", "highlight": "#00FF66" },
+      "monochromeSilver": { "shadow": "#0a0a0a", "highlight": "#E0E0E0" }
+    }
+  },
+  "visualInvariants": {
+    "tearing": "discrete horizontal slice displacement along X-axis (no wavy/sine distortion)",
+    "chromaticAberration": "red and cyan/blue horizontal separation",
+    "dither": "Bayer 4x4 ordered matrix halftone",
+    "scanlines": "interlaced CRT raster frequency",
+    "blockNoise": "stochastic rectangular corruptions at distortion >= 6"
+  },
+  "distortionBands": {
+    "subtle": { "range": [0, 2], "tearProbability": 0.05, "rgbShift": 0.15 },
+    "balanced": { "range": [3, 5], "tearProbability": 0.35, "rgbShift": 0.50 },
+    "aggressive": { "range": [6, 8], "tearProbability": 0.65, "rgbShift": 0.85 },
+    "totalDecay": { "range": [9, 10], "tearProbability": 0.90, "rgbShift": 1.0 }
+  }
+}
