@@ -299,7 +299,7 @@ def main():
     )
 
     out.save(args.output)
-    print(f"✓ Saved glitched output to '{args.output}'")
+    print(f"[OK] Saved glitched output to '{args.output}'")
 
 if __name__ == "__main__":
     main()
