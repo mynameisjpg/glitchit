@@ -22,3 +22,12 @@ glitch_color_out.json
 glitch_out.json
 render_glitch_color.js
 render_glitch.js
+assemble_runners.ps1
+build_maxed.ps1
+render_maxed_color.js
+render_maxed_duotone.js
+run_screenshots.ps1
+webgl-shader/render_maxed_color.html
+webgl-shader/render_maxed_duotone.html
+webgl-shader/render_maxed_runner.html
+.gitignore
