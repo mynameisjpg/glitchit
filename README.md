@@ -20,6 +20,17 @@
 
 ---
 
+## 🛠️ Three Operational Runtimes
+
+| Runtime | Purpose | Stack |
+| :--- | :--- | :--- |
+| **1. [Live WebGL Studio](webgl-shader/glitchit-live.html)** | Real-time 60 FPS GPU parameter scrubbing, drag-and-drop canvas, spacebar pan/zoom, and one-click hi-res export. | Vanilla HTML5 + GLSL Fragment Shader (0 dependencies, 100% offline). |
+| **2. [Python CLI Tool](script/glitchit.py)** | Deterministic batch processing for print production, editorial layouts, and automated CI pipelines. | Python 3 + NumPy + Pillow (runs in <300ms). |
+| **3. [Agent Skill](SKILL.md)** | Structured design heuristics and parameter anchors for AI coding agents (`Antigravity`, `Claude Code`, `Cursor`). | Markdown heuristics and mathematical constants. |
+
+
+---
+
 ## 🏛️ Repository Structure
 
 ```

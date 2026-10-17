@@ -611,34 +611,158 @@
       font-weight: 500;
     }
 
-    /* Palette Swatches */
-    .palette-swatch-row {
+    /* Duotone Ramp Bar & Underlined Hex Controls */
+    .duotone-controls-wrap {
       display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 0.55rem;
+      margin-top: 0.5rem;
     }
 
-    .swatch-btn {
-      flex: 1;
-      min-width: 60px;
-      height: 30px;
+    .duotone-ramp-frame {
+      width: 100%;
+      height: 22px;
       border: 1px solid var(--border-subtle);
-      cursor: pointer;
       border-radius: var(--radius-sm);
-      position: relative;
       overflow: hidden;
       display: flex;
+      background: #141414;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+    }
+
+    .ramp-half {
+      flex: 1;
+      height: 100%;
+      transition: background-color var(--transition-fast);
+    }
+
+    .hex-inputs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .hex-input-card {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(22, 22, 22, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.65rem;
+      transition: border-color var(--transition-fast);
+    }
+
+    .hex-input-card:hover, .hex-input-card:focus-within {
+      border-color: rgba(232, 74, 95, 0.35);
+    }
+
+    .hex-tag {
+      font-size: 0.62rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .swatch-picker-label {
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .color-swatch-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 1px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+      display: block;
+      transition: background-color var(--transition-fast);
+    }
+
+    .visually-hidden-picker {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+
+    .hex-field-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .underlined-hex-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.45);
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 0.1rem 0.15rem 0.2rem 0.15rem;
+      outline: none;
+      border-radius: 0;
+      transition: border-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .underlined-hex-input:focus {
+      border-bottom-color: var(--accent-coral);
+      color: #ffffff;
+      box-shadow: 0 2px 8px var(--accent-coral-subtle);
+    }
+
+    /* Hero Reroll Seed Divider (Bigger & Red) */
+    .reroll-divider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0.2rem 0;
+    }
+
+    .reroll-rule {
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .btn-reroll-hero {
+      background: rgba(232, 74, 95, 0.08);
+      border: 1px solid rgba(232, 74, 95, 0.45);
+      color: var(--accent-coral);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.55rem 1.3rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
       transition: all var(--transition-spring);
+      box-shadow: 0 0 16px rgba(232, 74, 95, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      white-space: nowrap;
     }
 
-    .swatch-btn:hover {
-      transform: translateY(-1px);
+    .btn-reroll-hero:hover {
+      background: var(--accent-coral);
+      color: #101010;
       border-color: var(--accent-coral);
+      box-shadow: 0 0 24px rgba(232, 74, 95, 0.55);
+      transform: translateY(-1px);
     }
 
-    .swatch-btn .s-left { width: 50%; height: 100%; }
-    .swatch-btn .s-right { width: 50%; height: 100%; }
-    .swatch-btn.active { outline: 2px solid var(--accent-coral); box-shadow: 0 0 14px var(--accent-coral-glow); }
+    .btn-reroll-hero:active {
+      transform: translateY(0);
+    }
 
     /* Action Buttons */
     .actions-group {
@@ -741,7 +865,7 @@
           <input type="file" id="fileInput" accept="image/*" aria-label="Upload custom image">
         </div>
 
-        <!-- 2. Color Treatment Mode -->
+        <!-- 2. Color Treatment Mode & Duotone Controls -->
         <div class="control-group">
           <div class="group-header">
             <span class="group-title">Color Mode</span>
@@ -754,6 +878,38 @@
             <button type="button" class="btn-mode" id="btnModeColor" data-mode="color">
               ▫ FULL COLOR
             </button>
+          </div>
+
+          <!-- Duotone Ramp Bar & Underlined Hex Inputs -->
+          <div class="duotone-controls-wrap" id="groupPalette">
+            <div class="duotone-ramp-frame" title="Active duotone gradient preview">
+              <div class="ramp-half" id="duotoneBarShadow" style="background: #101010;"></div>
+              <div class="ramp-half" id="duotoneBarHighlight" style="background: #E84A5F;"></div>
+            </div>
+
+            <div class="hex-inputs-grid">
+              <div class="hex-input-card">
+                <span class="hex-tag">HEX</span>
+                <label for="pickerShadow" class="swatch-picker-label" title="Click to choose shadow color">
+                  <span class="color-swatch-box" id="swatchBoxShadow" style="background: #101010;"></span>
+                  <input type="color" id="pickerShadow" value="#101010" aria-label="Shadow color picker" class="visually-hidden-picker">
+                </label>
+                <div class="hex-field-wrap">
+                  <input type="text" id="hexShadow" value="#101010" maxlength="7" spellcheck="false" aria-label="Shadow hex color value" class="underlined-hex-input">
+                </div>
+              </div>
+
+              <div class="hex-input-card">
+                <span class="hex-tag">HEX</span>
+                <label for="pickerHighlight" class="swatch-picker-label" title="Click to choose highlight color">
+                  <span class="color-swatch-box" id="swatchBoxHighlight" style="background: #E84A5F;"></span>
+                  <input type="color" id="pickerHighlight" value="#E84A5F" aria-label="Highlight color picker" class="visually-hidden-picker">
+                </label>
+                <div class="hex-field-wrap">
+                  <input type="text" id="hexHighlight" value="#E84A5F" maxlength="7" spellcheck="false" aria-label="Highlight hex color value" class="underlined-hex-input">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -772,7 +928,16 @@
           </div>
         </div>
 
-        <!-- 4. Quick Style Presets -->
+        <!-- 4. Hero Reroll Seed Divider (Bigger & Red) -->
+        <div class="reroll-divider-row">
+          <div class="reroll-rule"></div>
+          <button type="button" class="btn-reroll-hero" id="btnRerollHero">
+            ⟳ REROLL SEED
+          </button>
+          <div class="reroll-rule"></div>
+        </div>
+
+        <!-- 5. Quick Style Presets -->
         <div class="control-group">
           <div class="group-header">
             <span class="group-title">Style Presets</span>
@@ -784,7 +949,7 @@
           </div>
         </div>
 
-        <!-- 5. Telemetry & Overlays -->
+        <!-- 6. Telemetry & Overlays -->
         <div class="control-group">
           <div class="group-header">
             <span class="group-title">Telemetry & Overlays</span>
@@ -825,36 +990,6 @@
                 <span class="val" id="dispThreshold">0%</span>
               </div>
               <input type="range" id="sliderThreshold" min="0" max="1" step="0.05" value="0.0" aria-label="Zine contrast threshold intensity">
-            </div>
-          </div>
-        </div>
-
-        <!-- 6. Duotone Palette Presets -->
-        <div class="control-group" id="groupPalette">
-          <div class="group-header">
-            <span class="group-title">Duotone Ramp</span>
-          </div>
-          <div class="palette-swatch-row">
-            <button type="button" class="swatch-btn active" title="Untitled Coral" data-shadow="#101010" data-highlight="#E84A5F">
-              <div class="s-left" style="background:#101010;"></div>
-              <div class="s-right" style="background:#E84A5F;"></div>
-            </button>
-            <button type="button" class="swatch-btn" title="Monochrome Silver" data-shadow="#0a0a0a" data-highlight="#FFFFFF">
-              <div class="s-left" style="background:#0a0a0a;"></div>
-              <div class="s-right" style="background:#FFFFFF;"></div>
-            </button>
-          </div>
-          <!-- Custom Hex Code Inputs -->
-          <div class="custom-hex-row" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem;">
-            <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; background: #161616; padding: 0.35rem 0.5rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
-              <label for="pickerShadow" style="font-size: 0.58rem; color: var(--text-muted);">SHADOW</label>
-              <input type="color" id="pickerShadow" value="#101010" aria-label="Shadow color picker" style="width: 18px; height: 18px; border: none; background: none; cursor: pointer;">
-              <input type="text" id="hexShadow" value="#101010" maxlength="7" spellcheck="false" aria-label="Shadow hex color value" style="width: 58px; background: transparent; border: none; color: #fff; font-family: var(--font-mono); font-size: 0.62rem; outline: none;">
-            </div>
-            <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; background: #161616; padding: 0.35rem 0.5rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
-              <label for="pickerHighlight" style="font-size: 0.58rem; color: var(--text-muted);">HIGHLIGHT</label>
-              <input type="color" id="pickerHighlight" value="#E84A5F" aria-label="Highlight color picker" style="width: 18px; height: 18px; border: none; background: none; cursor: pointer;">
-              <input type="text" id="hexHighlight" value="#E84A5F" maxlength="7" spellcheck="false" aria-label="Highlight hex color value" style="width: 58px; background: transparent; border: none; color: #fff; font-family: var(--font-mono); font-size: 0.62rem; outline: none;">
             </div>
           </div>
         </div>
@@ -1638,10 +1773,14 @@
       renderer.setParams({ threshold: val });
     });
 
-    btnRerollSeed.addEventListener('click', () => {
+    function triggerReroll() {
       const newSeed = Math.random() * 1000.0;
       renderer.setParams({ seed: newSeed });
-    });
+    }
+
+    const btnRerollHero = document.getElementById('btnRerollHero');
+    if (btnRerollHero) btnRerollHero.addEventListener('click', triggerReroll);
+    if (btnRerollSeed) btnRerollSeed.addEventListener('click', triggerReroll);
 
     // Mode Toggle
     function setMode(mode) {
@@ -1731,10 +1870,19 @@
     const hexHighlight = document.getElementById('hexHighlight');
 
     function updateCustomColors() {
-      document.querySelectorAll('.swatch-btn').forEach(b => b.classList.remove('active'));
+      const s = hexShadow.value;
+      const h = hexHighlight.value;
+      const barS = document.getElementById('duotoneBarShadow');
+      const barH = document.getElementById('duotoneBarHighlight');
+      const boxS = document.getElementById('swatchBoxShadow');
+      const boxH = document.getElementById('swatchBoxHighlight');
+      if (barS) barS.style.backgroundColor = s;
+      if (barH) barH.style.backgroundColor = h;
+      if (boxS) boxS.style.backgroundColor = s;
+      if (boxH) boxH.style.backgroundColor = h;
       renderer.setParams({
-        colorShadow: hexShadow.value,
-        colorHighlight: hexHighlight.value
+        colorShadow: s,
+        colorHighlight: h
       });
     }
 
@@ -1759,6 +1907,9 @@
         updateCustomColors();
       }
     });
+
+    // Initialize duotone ramp and swatch indicators
+    updateCustomColors();
 
     // File Upload Handler
     btnUpload.addEventListener('click', () => fileInput.click());
