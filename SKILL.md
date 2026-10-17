@@ -47,13 +47,12 @@ Every glitch operation is parameterized across primary composition controls and 
 
 | Parameter | CLI Flag | Range | Default | Description & Visual Impact |
 | :--- | :--- | :---: | :---: | :--- |
+| **`preset`** | `-p, --preset` | `subtle` \| `untitled` \| `total-decay` | `None` | Quick curated aesthetic preset: **`subtle`** (aberration 20%, dither 30%, scanlines 40%, clusters 20%, threshold 5%), **`untitled`** (balanced mid-range), **`total-decay`** (max saturation and corruption). |
 | **`scanlines`** | `--scanlines` | `0.0`–`1.0` | `0.65` | CRT raster line modulation. Sinusoidally dims alternating pixel rows. |
 | **`dither`** | `--dither` | `0.0`–`1.0` | `0.45` | Bayer 4x4 matrix halftone dither intensity. Converts continuous gradients into risograph dots. |
-| **`rgb_shift`** | `--rgb-shift` | `0.0`–`1.0` | `0.75` | Chromatic aberration split. Offsets Red channel to the right and Blue channel to the left. |
-| **`grid`** | `--grid` | `0.0`–`1.0` | `0.0` | Cartesian technical coordinate grid overlay with 5px crosshair tick marks (`+`) at intersections. |
-| **`waveform`** | `--waveform` | `0.0`–`1.0` | `0.0` | Oscilloscope audio frequency / EKG wave pulse slicing horizontally across tear seams. |
-| **`threshold`** | `--threshold` | `0.0`–`1.0` | `0.0` | High-contrast zine thresholding. Crushes midtones into binary ink shadows and stark highlights. |
-| **`boxes`** | `--boxes` | `0.0`–`1.0` | `0.0` | Technical specimen framing boxes. Asymmetric 1px wireframe bounding boxes with 90° corner ticks. |
+| **`rgb_shift`** | `--rgb-shift` | `0.0`–`1.0` | `0.35` | Chromatic aberration split with vignette weighting. Offsets Red channel to the right and Blue channel to the left; centers stay sharp while borders and corners receive strong optical lens separation. |
+| **`clusters`** | `--clusters` | `0.0`–`1.0` | `0.5` | Data corruption pixel clusters plotted behind distortions and textures so they are sheared by tears, split by chromatic aberration, and textured by paper grain. |
+| **`threshold`** | `--threshold` | `0.0`–`1.0` | `0.0` | High-contrast zine thresholding calibrated so 100% matches the maximum stylistic ceiling. |
 | **`seed`** | `--seed` | Integer | `42` | Pseudo-random seed ensuring deterministic, reproducible tear patterns across runs. |
 
 ---
@@ -80,12 +79,13 @@ Select the execution modality matching the user's environment:
 Execute local processing with zero external API tokens and full parameter control:
 
 ```bash
-# Signature Duotone (Level 5)
-python script/glitchit.py photo.jpg -o output.png --mode duotone --distortion 5
+# Style Presets
+python script/glitchit.py photo.jpg -o output.png --preset subtle
+python script/glitchit.py photo.jpg -o output.png --preset untitled
+python script/glitchit.py photo.jpg -o output.png --preset total-decay
 
-# Editorial Glitch with Integrated Overlays (Grid, Waveform, Threshold, Boxes)
-python script/glitchit.py photo.jpg -o output.png --distortion 5 \
-  --grid 0.4 --waveform 0.5 --threshold 0.35 --boxes 0.6
+# Signature Duotone (Level 5) with Custom Data Clusters
+python script/glitchit.py photo.jpg -o output.png --mode duotone --distortion 5 --clusters 0.4
 
 # Custom Two-Color Palette (e.g., Terminal Phosphor Green)
 python script/glitchit.py photo.jpg -o output.png --mode duotone --distortion 6 \
@@ -117,21 +117,19 @@ For interactive visual tuning, real-time 60 FPS GPU parameter scrubbing, and bro
 
 **Programmatic WebGL Integration**:
 ```javascript
-import { GlitchitRenderer } from './glitchit-shader.js';
+import { GlitchitShader } from './glitchit-shader.js';
 
 const canvas = document.getElementById('myCanvas');
-const renderer = new GlitchitRenderer(canvas, {
+const renderer = new GlitchitShader(canvas, {
   distortion: 5,
   mode: 'duotone',
   colorShadow: '#101010',
   colorHighlight: '#E84A5F',
-  grid: 0.4,
-  waveform: 0.5,
-  threshold: 0.3,
-  boxes: 0.5
+  clusters: 0.5,
+  threshold: 0.3
 });
 
-await renderer.loadImage('my-photo.jpg');
+await renderer.loadSource('my-photo.jpg');
 ```
 
 ---
@@ -203,11 +201,10 @@ If the user selects **Python Script** or **Generative AI**, confirm any underspe
 2. **Color Mode**:
    - `Duotone` (Default: Midnight Charcoal `#101010` & Coral Crimson `#E84A5F`, or custom hexes).
    - `Full Color` (Preserves RGB spectrum with high contrast & chromatic splits).
-3. **Optional Overlays (Intensity `0.0` to `1.0`)**:
-   - Cartesian coordinate grid (`--grid`)
-   - Oscilloscope waveform trace (`--waveform`)
-   - Zine contrast thresholding (`--threshold`)
-   - Specimen framing boxes (`--boxes`)
+3. **Optional Parameters & Overlays (Intensity `0.0` to `1.0`)**:
+   - Data corruption pixel clusters (`--clusters`, default `0.5`, plotted behind distortions & textures)
+   - Calibrated zine contrast thresholding (`--threshold`, default `0.0`)
+   - Curated presets (`--preset subtle`, `--preset untitled`, `--preset total-decay`)
 
 ---
 
@@ -216,10 +213,9 @@ If the user selects **Python Script** or **Generative AI**, confirm any underspe
 ### ✅ Do:
 - **Anchor duotone palettes strictly in 2 tones** (`shadow` and `highlight`).
 - **Use whole integer distortion levels** (`0` through `10`).
-- **Keep slice displacements horizontal and discrete** via row-based offsets.
+- **Keep slice displacements horizontal and discrete** via row-based offsets with diverse thicknesses (thin, med, chunky).
 - **Maintain high mathematical contrast** using ordered Bayer dithering.
-- **Keep technical schematics and grids hairline-thin (1px) and orthogonal**.
-- **Frame focal elements with 90° rectangular wireframe specimen boxes**.
+- **Plot data corruption clusters behind distortions and textures** so they are sheared by tears and textured by paper grain.
 
 ### ❌ Don't:
 - **Do not introduce a 3rd "accent" color or intermediate gradient ramps** in duotone mode.

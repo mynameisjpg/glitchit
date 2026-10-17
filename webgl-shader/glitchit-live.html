@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500;600&family=Platypi:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <script src="sample-image.js"></script>
+  <script src="cluster-sheet.js"></script>
   <style>
     :root {
       --bg-deep: #0a0a0a;
@@ -37,14 +39,17 @@
       padding: 0;
     }
 
+    html, body {
+      height: 100vh;
+      overflow: hidden;
+    }
+
     body {
       background-color: var(--bg-deep);
       color: var(--text-bright);
       font-family: var(--font-mono);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
       line-height: 1.4;
     }
 
@@ -52,11 +57,12 @@
     header.studio-header {
       background: var(--bg-panel);
       border-bottom: 1px solid var(--border-subtle);
-      padding: 0.75rem 1.5rem;
+      padding: 0.5rem 1.25rem;
+      height: 42px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      flex-shrink: 0;
       gap: 1rem;
       z-index: 100;
     }
@@ -102,54 +108,130 @@
       color: var(--accent-coral);
     }
 
-    /* Studio Main Split Layout */
+    /* Studio Main Split Layout: Left Controls Sidebar + Right Stage */
     main.studio-layout {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 380px;
-      height: calc(100vh - 49px);
+      grid-template-columns: clamp(350px, 24vw, 400px) 1fr;
+      height: calc(100vh - 42px);
       overflow: hidden;
     }
 
-    @media (max-width: 992px) {
+    @media (max-width: 900px) {
       main.studio-layout {
         grid-template-columns: 1fr;
         height: auto;
-        overflow: visible;
+        overflow: auto;
       }
     }
 
-    /* Left Viewport Stage */
+    /* Left Controls Sidebar Drawer with mynameisjpg Aesthetic */
+    aside.controls-panel {
+      position: relative;
+      background: rgba(18, 18, 18, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border-right: 1px solid var(--border-subtle);
+      border-left: none;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(232, 74, 95, 0.35) transparent;
+      z-index: 10;
+    }
+
+    /* Subtle Film Grain Noise Texture from mynameisjpg */
+    aside.controls-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.038'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    aside.controls-panel::-webkit-scrollbar {
+      width: 5px;
+    }
+    aside.controls-panel::-webkit-scrollbar-track {
+      background: var(--bg-deep);
+    }
+    aside.controls-panel::-webkit-scrollbar-thumb {
+      background: #333333;
+      border-radius: var(--radius-sm);
+    }
+    aside.controls-panel::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-coral);
+    }
+
+    .panel-scroll-content {
+      position: relative;
+      z-index: 2;
+      padding: 3vh 1.4rem;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: clamp(1rem, 2.4vh, 2.2rem);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(0.45rem, 1vh, 0.85rem);
+    }
+
+    /* Right Viewport Stage */
     section.viewport-stage {
       position: relative;
       background: radial-gradient(circle at center, #151515 0%, #080808 100%);
+      height: 100%;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-      overflow: hidden;
-      border-right: 1px solid var(--border-subtle);
     }
 
-    .canvas-wrapper {
-      position: relative;
-      max-width: 100%;
-      max-height: 82vh;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85);
-      border: 1px solid var(--border-subtle);
+    /* Zoomable & Pannable Viewport */
+    .canvas-viewport {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #000;
+      overflow: hidden;
+      user-select: none;
+      cursor: crosshair;
+    }
+
+    .canvas-viewport.space-pan-ready {
+      cursor: grab !important;
+    }
+
+    .canvas-viewport.is-panning {
+      cursor: grabbing !important;
+    }
+
+    .canvas-transform-container {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+      will-change: transform;
+      pointer-events: none;
     }
 
     canvas#glitchCanvas {
-      max-width: 100%;
-      max-height: 82vh;
-      object-fit: contain;
       display: block;
-      cursor: crosshair;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.95);
+      border: 1px solid var(--border-subtle);
+      background: #000;
+      pointer-events: auto;
     }
 
     /* Drag & Drop Overlay */
@@ -175,25 +257,30 @@
       pointer-events: auto;
     }
 
+    /* Top Stage Telemetry HUD */
     .stage-hud {
       position: absolute;
-      bottom: 1.5rem;
-      left: 1.5rem;
+      top: 1rem;
+      left: 1rem;
       display: flex;
-      gap: 0.75rem;
+      gap: 0.5rem;
       z-index: 20;
+      pointer-events: none;
     }
 
     .hud-pill {
-      background: rgba(20, 20, 20, 0.85);
-      backdrop-filter: blur(8px);
+      background: rgba(14, 14, 14, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--border-subtle);
-      padding: 0.35rem 0.75rem;
+      border-left: 2px solid var(--accent-coral);
+      padding: 0.38rem 0.8rem;
       font-size: 0.65rem;
       letter-spacing: 0.08em;
       color: var(--text-muted);
       border-radius: var(--radius-sm);
       user-select: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     }
 
     .hud-pill strong {
@@ -201,26 +288,115 @@
       font-weight: 500;
     }
 
-    /* Right Controls Drawer */
-    aside.controls-panel {
-      background: var(--bg-panel);
+    /* Floating Zoom Toolbar (Bottom Left) */
+    .floating-zoom-bar {
+      position: absolute;
+      bottom: 1.4rem;
+      left: 1.4rem;
       display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      border-left: 1px solid var(--border-subtle);
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(14, 14, 14, 0.90);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 0.4rem 0.65rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.75), 0 0 16px rgba(232, 74, 95, 0.12);
+      z-index: 30;
+      font-family: var(--font-mono);
     }
 
-    .panel-scroll-content {
-      padding: 1.75rem 1.5rem;
+    .zoom-btn {
+      background: rgba(28, 28, 28, 0.8);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-bright);
+      padding: 0.25rem 0.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-spring);
       display: flex;
-      flex-direction: column;
-      gap: 1.75rem;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 26px;
     }
 
-    .control-group {
+    .zoom-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-coral);
+      color: var(--accent-coral);
+      box-shadow: 0 0 10px var(--accent-coral-subtle);
+      transform: translateY(-1px);
+    }
+
+    .zoom-level-display {
+      min-width: 54px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--accent-coral);
+      border-color: var(--border-subtle);
+    }
+
+    .zoom-btn-fit {
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      padding: 0.25rem 0.55rem;
+    }
+
+    .zoom-divider {
+      width: 1px;
+      height: 16px;
+      background: var(--border-subtle);
+      margin: 0 0.2rem;
+    }
+
+    .zoom-hint {
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0.2rem 0.45rem;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-fast);
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .zoom-hint.active {
+      color: #101010;
+      background: var(--accent-coral);
+      font-weight: 600;
+    }
+
+    /* Floating Action Buttons (Bottom Right) */
+    .floating-actions-bar {
+      position: absolute;
+      bottom: 1.4rem;
+      right: 1.4rem;
       display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
+      align-items: center;
+      gap: 0.65rem;
+      background: rgba(14, 14, 14, 0.90);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 0.45rem 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.75), 0 0 24px rgba(232, 74, 95, 0.18);
+      z-index: 30;
+    }
+
+    .floating-actions-bar .btn-action-primary {
+      padding: 0.6rem 1.05rem;
+      font-size: 0.7rem;
+    }
+
+    .floating-actions-bar .btn-action-secondary {
+      padding: 0.6rem 0.95rem;
+      font-size: 0.68rem;
     }
 
     .group-header {
@@ -249,8 +425,10 @@
       font-size: 0.62rem;
       color: var(--accent-coral);
       background: var(--accent-coral-subtle);
-      padding: 0.15rem 0.45rem;
+      border: 1px solid var(--accent-coral-border);
+      padding: 0.18rem 0.5rem;
       border-radius: var(--radius-sm);
+      letter-spacing: 0.05em;
     }
 
     /* Toggle Mode Buttons */
@@ -261,17 +439,17 @@
     }
 
     .btn-mode {
-      background: var(--bg-card);
+      background: rgba(28, 28, 28, 0.6);
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
-      padding: 0.65rem 0.5rem;
+      padding: clamp(0.55rem, 1vh, 0.8rem) 0.5rem;
       font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       cursor: pointer;
       border-radius: var(--radius-sm);
-      transition: all var(--transition-fast);
+      transition: all var(--transition-spring);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -281,24 +459,34 @@
     .btn-mode:hover {
       border-color: var(--border-strong);
       color: var(--text-bright);
+      transform: translateY(-1px);
     }
 
     .btn-mode.active {
       background: var(--accent-coral);
       color: #101010;
       border-color: var(--accent-coral);
-      font-weight: 500;
+      box-shadow: 0 0 20px var(--accent-coral-glow);
+      font-weight: 600;
     }
 
-    /* Distortion Slider Hero */
+    /* Distortion Slider Hero (mynameisjpg Glass Card) */
     .distortion-box {
-      background: var(--bg-card);
+      background: rgba(28, 28, 28, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border-subtle);
-      padding: 1rem;
+      padding: clamp(0.75rem, 1.4vh, 1.15rem);
       border-radius: var(--radius-sm);
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: clamp(0.5rem, 1vh, 0.85rem);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .distortion-box:hover {
+      border-color: rgba(232, 74, 95, 0.35);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .distortion-top {
@@ -309,20 +497,22 @@
 
     .distortion-val {
       font-size: 1.6rem;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--accent-coral);
       font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 16px var(--accent-coral-glow);
     }
 
     .distortion-label {
       font-size: 0.62rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
     input[type="range"] {
       -webkit-appearance: none;
+      appearance: none;
       width: 100%;
       height: 4px;
       background: #2a2a2a;
@@ -340,49 +530,66 @@
       cursor: pointer;
       border: 2px solid #101010;
       box-shadow: 0 0 10px var(--accent-coral-glow);
-      transition: transform 0.1s ease;
+      transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.15);
+      transform: scale(1.2);
     }
 
     /* Preset Quick Buttons */
     .preset-pill-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.4rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
     }
 
     .btn-preset {
-      background: transparent;
+      background: rgba(24, 24, 24, 0.4);
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
-      padding: 0.4rem 0.5rem;
+      padding: clamp(0.45rem, 0.9vh, 0.65rem) 0.5rem;
       font-family: var(--font-mono);
       font-size: 0.62rem;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       cursor: pointer;
       border-radius: var(--radius-sm);
-      transition: all var(--transition-fast);
-      text-align: left;
+      transition: all var(--transition-spring);
+      text-align: center;
     }
 
     .btn-preset:hover {
       border-color: var(--accent-coral);
       color: var(--text-bright);
+      box-shadow: 0 0 14px var(--accent-coral-subtle);
+      transform: translateY(-1px);
     }
 
-    /* Sub-Parameter Sliders */
+    .btn-preset.active {
+      background: rgba(232, 74, 95, 0.18);
+      border-color: var(--accent-coral);
+      color: var(--accent-coral);
+      box-shadow: 0 0 16px rgba(232, 74, 95, 0.22);
+      font-weight: 600;
+    }
+
+    /* Sub-Parameter Sliders (mynameisjpg Glass Card) */
     .sub-sliders-list {
       display: flex;
       flex-direction: column;
-      gap: 0.9rem;
-      background: rgba(0, 0, 0, 0.2);
-      padding: 0.9rem;
+      gap: clamp(0.6rem, 1.25vh, 1rem);
+      background: rgba(14, 14, 14, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: clamp(0.75rem, 1.4vh, 1.15rem);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
+      transition: border-color var(--transition-fast);
+    }
+
+    .sub-sliders-list:hover {
+      border-color: rgba(232, 74, 95, 0.28);
     }
 
     .sub-slider-row {
@@ -396,11 +603,12 @@
       justify-content: space-between;
       font-size: 0.62rem;
       color: var(--text-muted);
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
     }
 
     .sub-slider-label span.val {
       color: var(--text-bright);
+      font-weight: 500;
     }
 
     /* Palette Swatches */
@@ -420,11 +628,17 @@
       position: relative;
       overflow: hidden;
       display: flex;
+      transition: all var(--transition-spring);
+    }
+
+    .swatch-btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent-coral);
     }
 
     .swatch-btn .s-left { width: 50%; height: 100%; }
     .swatch-btn .s-right { width: 50%; height: 100%; }
-    .swatch-btn.active { outline: 2px solid var(--accent-coral); }
+    .swatch-btn.active { outline: 2px solid var(--accent-coral); box-shadow: 0 0 14px var(--accent-coral-glow); }
 
     /* Action Buttons */
     .actions-group {
@@ -441,12 +655,12 @@
       padding: 0.85rem 1rem;
       font-family: var(--font-mono);
       font-size: 0.75rem;
-      font-weight: 500;
+      font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
       border-radius: var(--radius-sm);
-      transition: all var(--transition-fast);
+      transition: all var(--transition-spring);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -459,17 +673,17 @@
     }
 
     .btn-action-secondary {
-      background: var(--bg-card);
+      background: rgba(28, 28, 28, 0.6);
       color: var(--text-bright);
       border: 1px solid var(--border-subtle);
-      padding: 0.65rem 1rem;
+      padding: clamp(0.55rem, 1vh, 0.75rem) 0.85rem;
       font-family: var(--font-mono);
       font-size: 0.68rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       cursor: pointer;
       border-radius: var(--radius-sm);
-      transition: all var(--transition-fast);
+      transition: all var(--transition-spring);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -477,8 +691,10 @@
     }
 
     .btn-action-secondary:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-strong);
+      background: rgba(232, 74, 95, 0.12);
+      border-color: var(--accent-coral);
+      box-shadow: 0 0 16px var(--accent-coral-subtle);
+      transform: translateY(-1px);
     }
 
     /* Hidden file input */
@@ -502,31 +718,10 @@
     </div>
   </header>
 
-  <!-- Studio Split Stage -->
+  <!-- Studio Split Stage: Left Controls Panel + Right Viewport Stage -->
   <main class="studio-layout">
 
-    <!-- Left Stage: Interactive Canvas Viewport -->
-    <section class="viewport-stage" id="dropArea">
-      <div class="canvas-wrapper">
-        <canvas id="glitchCanvas"></canvas>
-      </div>
-
-      <!-- Drag & Drop Indicator -->
-      <div class="drop-overlay" id="dropOverlay">
-        <span style="font-size: 2rem;">📥</span>
-        <div style="font-size: 0.85rem; letter-spacing: 0.1em; color: var(--accent-coral);">DROP IMAGE TO GLITCHIFY</div>
-        <div style="font-size: 0.65rem; color: var(--text-muted);">SUPPORTS PNG, JPG, WEBP</div>
-      </div>
-
-      <!-- Bottom Stage Telemetry HUD -->
-      <div class="stage-hud">
-        <div class="hud-pill" id="hudRes">RES: <strong>--</strong></div>
-        <div class="hud-pill" id="hudDist">LEVEL: <strong>5.0</strong></div>
-        <div class="hud-pill" id="hudMode">MODE: <strong>DUOTONE</strong></div>
-      </div>
-    </section>
-
-    <!-- Right Stage: Parameter Controls Drawer -->
+    <!-- Left Stage: Parameter Controls Drawer -->
     <aside class="controls-panel">
       <div class="panel-scroll-content">
 
@@ -543,7 +738,7 @@
               🎲 TEST SAMPLE
             </button>
           </div>
-          <input type="file" id="fileInput" accept="image/*">
+          <input type="file" id="fileInput" accept="image/*" aria-label="Upload custom image">
         </div>
 
         <!-- 2. Color Treatment Mode -->
@@ -573,7 +768,7 @@
               <span class="distortion-val" id="dispDistortion">5</span>
               <span class="distortion-label" id="dispDistortionDesc">Balanced Tear & Dither</span>
             </div>
-            <input type="range" id="sliderDistortion" min="0" max="10" step="1" value="5">
+            <input type="range" id="sliderDistortion" min="0" max="10" step="1" value="5" aria-label="Distortion scale from 0 to 10">
           </div>
         </div>
 
@@ -583,10 +778,9 @@
             <span class="group-title">Style Presets</span>
           </div>
           <div class="preset-pill-grid">
-            <button type="button" class="btn-preset" data-dist="2" data-scan="0.4" data-dither="0.3">01. Subtle (2)</button>
-            <button type="button" class="btn-preset" data-dist="5" data-scan="0.65" data-dither="0.45">02. Editorial (5)</button>
-            <button type="button" class="btn-preset" data-dist="8" data-scan="0.8" data-dither="0.65">03. Aggressive (8)</button>
-            <button type="button" class="btn-preset" data-dist="10" data-scan="0.95" data-dither="0.85">04. Total Decay (10)</button>
+            <button type="button" class="btn-preset" data-dist="2" data-rgb="0.20" data-dither="0.30" data-scan="0.40" data-clusters="0.20" data-threshold="0.05">01. SUBTLE</button>
+            <button type="button" class="btn-preset active" data-dist="5" data-rgb="0.60" data-dither="0.65" data-scan="0.70" data-clusters="0.60" data-threshold="0.50">02. UNTITLED</button>
+            <button type="button" class="btn-preset" data-dist="10" data-rgb="1.0" data-dither="1.0" data-scan="1.0" data-clusters="1.0" data-threshold="1.0">03. TOTAL DECAY</button>
           </div>
         </div>
 
@@ -602,49 +796,35 @@
                 <span>CRT SCANLINES</span>
                 <span class="val" id="dispScanlines">65%</span>
               </div>
-              <input type="range" id="sliderScanlines" min="0" max="1" step="0.05" value="0.65">
+              <input type="range" id="sliderScanlines" min="0" max="1" step="0.05" value="0.65" aria-label="CRT Scanlines intensity">
             </div>
             <div class="sub-slider-row">
               <div class="sub-slider-label">
                 <span>BAYER DITHER MATRIX</span>
                 <span class="val" id="dispDither">45%</span>
               </div>
-              <input type="range" id="sliderDither" min="0" max="1" step="0.05" value="0.45">
+              <input type="range" id="sliderDither" min="0" max="1" step="0.05" value="0.45" aria-label="Bayer 4x4 dither intensity">
             </div>
             <div class="sub-slider-row">
               <div class="sub-slider-label">
                 <span>CHROMATIC ABERRATION (RGB SPLIT)</span>
-                <span class="val" id="dispRgb">75%</span>
+                <span class="val" id="dispRgb">35%</span>
               </div>
-              <input type="range" id="sliderRgb" min="0" max="1" step="0.05" value="0.75">
+              <input type="range" id="sliderRgb" min="0" max="1" step="0.05" value="0.35" aria-label="Chromatic aberration intensity">
             </div>
             <div class="sub-slider-row">
               <div class="sub-slider-label">
-                <span>CARTESIAN GRID & SCHEMATICS</span>
-                <span class="val" id="dispGrid">0%</span>
+                <span>DATA CORRUPTION CLUSTERS</span>
+                <span class="val" id="dispClusters">50%</span>
               </div>
-              <input type="range" id="sliderGrid" min="0" max="1" step="0.05" value="0.0">
-            </div>
-            <div class="sub-slider-row">
-              <div class="sub-slider-label">
-                <span>OSCILLOSCOPE WAVEFORM</span>
-                <span class="val" id="dispWaveform">0%</span>
-              </div>
-              <input type="range" id="sliderWaveform" min="0" max="1" step="0.05" value="0.0">
+              <input type="range" id="sliderClusters" min="0" max="1" step="0.05" value="0.5" aria-label="Data corruption clusters intensity">
             </div>
             <div class="sub-slider-row">
               <div class="sub-slider-label">
                 <span>ZINE CONTRAST THRESHOLD</span>
                 <span class="val" id="dispThreshold">0%</span>
               </div>
-              <input type="range" id="sliderThreshold" min="0" max="1" step="0.05" value="0.0">
-            </div>
-            <div class="sub-slider-row">
-              <div class="sub-slider-label">
-                <span>SPECIMEN FRAMING BOXES</span>
-                <span class="val" id="dispBoxes">0%</span>
-              </div>
-              <input type="range" id="sliderBoxes" min="0" max="1" step="0.05" value="0.0">
+              <input type="range" id="sliderThreshold" min="0" max="1" step="0.05" value="0.0" aria-label="Zine contrast threshold intensity">
             </div>
           </div>
         </div>
@@ -667,36 +847,92 @@
           <!-- Custom Hex Code Inputs -->
           <div class="custom-hex-row" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem;">
             <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; background: #161616; padding: 0.35rem 0.5rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
-              <label style="font-size: 0.58rem; color: var(--text-muted);">SHADOW</label>
-              <input type="color" id="pickerShadow" value="#101010" style="width: 18px; height: 18px; border: none; background: none; cursor: pointer;">
-              <input type="text" id="hexShadow" value="#101010" maxlength="7" spellcheck="false" style="width: 58px; background: transparent; border: none; color: #fff; font-family: var(--font-mono); font-size: 0.62rem; outline: none;">
+              <label for="pickerShadow" style="font-size: 0.58rem; color: var(--text-muted);">SHADOW</label>
+              <input type="color" id="pickerShadow" value="#101010" aria-label="Shadow color picker" style="width: 18px; height: 18px; border: none; background: none; cursor: pointer;">
+              <input type="text" id="hexShadow" value="#101010" maxlength="7" spellcheck="false" aria-label="Shadow hex color value" style="width: 58px; background: transparent; border: none; color: #fff; font-family: var(--font-mono); font-size: 0.62rem; outline: none;">
             </div>
             <div style="flex: 1; display: flex; align-items: center; gap: 0.35rem; background: #161616; padding: 0.35rem 0.5rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
-              <label style="font-size: 0.58rem; color: var(--text-muted);">HIGHLIGHT</label>
-              <input type="color" id="pickerHighlight" value="#E84A5F" style="width: 18px; height: 18px; border: none; background: none; cursor: pointer;">
-              <input type="text" id="hexHighlight" value="#E84A5F" maxlength="7" spellcheck="false" style="width: 58px; background: transparent; border: none; color: #fff; font-family: var(--font-mono); font-size: 0.62rem; outline: none;">
+              <label for="pickerHighlight" style="font-size: 0.58rem; color: var(--text-muted);">HIGHLIGHT</label>
+              <input type="color" id="pickerHighlight" value="#E84A5F" aria-label="Highlight color picker" style="width: 18px; height: 18px; border: none; background: none; cursor: pointer;">
+              <input type="text" id="hexHighlight" value="#E84A5F" maxlength="7" spellcheck="false" aria-label="Highlight hex color value" style="width: 58px; background: transparent; border: none; color: #fff; font-family: var(--font-mono); font-size: 0.62rem; outline: none;">
             </div>
           </div>
-        </div>
-
-        <!-- 7. Export Pipeline -->
-        <div class="actions-group">
-          <button type="button" class="btn-action-primary" id="btnExport">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            <span>EXPORT HI-RES PNG</span>
-          </button>
-          <button type="button" class="btn-action-secondary" id="btnCopy">
-            📋 COPY TO CLIPBOARD
-          </button>
         </div>
 
       </div>
     </aside>
 
+    <!-- Right Stage: Interactive Canvas Viewport -->
+    <section class="viewport-stage" id="dropArea">
+      <!-- Top Stage Telemetry HUD -->
+      <div class="stage-hud">
+        <div class="hud-pill" id="hudRes">RES: <strong>--</strong></div>
+        <div class="hud-pill" id="hudDist">LEVEL: <strong>5.0</strong></div>
+        <div class="hud-pill" id="hudMode">MODE: <strong>DUOTONE</strong></div>
+      </div>
+
+      <!-- Zoomable / Pannable Viewport & Canvas Container -->
+      <div class="canvas-viewport" id="canvasViewport">
+        <div class="canvas-transform-container" id="canvasTransformContainer">
+          <canvas id="glitchCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Indicator -->
+      <div class="drop-overlay" id="dropOverlay">
+        <span style="font-size: 2rem;">📥</span>
+        <div style="font-size: 0.85rem; letter-spacing: 0.1em; color: var(--accent-coral);">DROP IMAGE TO GLITCHIFY</div>
+        <div style="font-size: 0.65rem; color: var(--text-muted);">SUPPORTS PNG, JPG, WEBP</div>
+      </div>
+
+      <!-- Floating Zoom Controls (Bottom Left) -->
+      <div class="floating-zoom-bar">
+        <button type="button" class="zoom-btn" id="btnZoomOut" title="Zoom Out (Wheel Down)">−</button>
+        <button type="button" class="zoom-btn zoom-level-display" id="btnZoomReset" title="Click to Reset (100%)">
+          <span id="zoomPercent">100%</span>
+        </button>
+        <button type="button" class="zoom-btn" id="btnZoomIn" title="Zoom In (Wheel Up)">+</button>
+        <button type="button" class="zoom-btn zoom-btn-fit" id="btnZoomFit" title="Fit to Viewport">⛶ FIT</button>
+        <div class="zoom-divider"></div>
+        <span class="zoom-hint" id="zoomPanHint">🖐 SPACE + DRAG</span>
+      </div>
+
+      <!-- Floating Export Actions (Bottom Right) -->
+      <div class="floating-actions-bar">
+        <button type="button" class="btn-action-primary" id="btnExport">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>EXPORT HI-RES PNG</span>
+        </button>
+        <button type="button" class="btn-action-secondary" id="btnCopy">
+          📋 COPY TO CLIPBOARD
+        </button>
+      </div>
+    </section>
+
   </main>
 
   <!-- Glitchit Standalone Engine & Studio Controller -->
   <script>
+    const DEFAULT_CLUSTER_SPRITES = [
+      // [x, y, w, h] on 3000x1500 cluster sheet
+      // Checkerboards & Halftone Blocks
+      [460, 1196, 496, 304], [1548, 76, 544, 192], [1204, 1084, 264, 288],
+      [2596, 708, 296, 216], [2588, 76, 304, 160], [0, 1380, 284, 120],
+      [1844, 348, 272, 104], [2700, 1172, 240, 104],
+      // Horizontal Transmission Bars & Bursts
+      [44, 844, 600, 104], [308, 604, 528, 64], [524, 1084, 376, 88],
+      [892, 132, 448, 32], [1060, 380, 424, 32], [2692, 444, 308, 40],
+      [1132, 164, 208, 56], [1580, 804, 176, 48],
+      // Vertical Barcode Columns
+      [1876, 548, 136, 320], [964, 844, 96, 200], [2524, 4, 56, 304],
+      [2172, 1028, 40, 288], [2092, 1108, 48, 224], [396, 1068, 72, 136],
+      [2444, 708, 32, 216], [1284, 844, 56, 112],
+      // Stepped Byte Blocks & Pixel Constellations
+      [2700, 1172, 240, 104], [1668, 1260, 200, 104], [2660, 972, 152, 128],
+      [76, 76, 160, 104], [692, 316, 176, 80], [652, 844, 104, 104],
+      [1988, 1060, 96, 104], [1980, 1268, 120, 80]
+    ];
+
     class GlitchitRenderer {
       constructor(canvas, options = {}) {
         this.canvas = canvas;
@@ -713,21 +949,21 @@
           seed: options.seed !== undefined ? options.seed : 42.0,
           scanlines: options.scanlines !== undefined ? options.scanlines : 0.65,
           dither: options.dither !== undefined ? options.dither : 0.45,
-          rgbShift: options.rgbShift !== undefined ? options.rgbShift : 0.75,
-          grid: options.grid !== undefined ? options.grid : 0.0,
-          waveform: options.waveform !== undefined ? options.waveform : 0.0,
+          rgbShift: options.rgbShift !== undefined ? options.rgbShift : 0.35,
+          clusters: options.clusters !== undefined ? options.clusters : 0.5,
           threshold: options.threshold !== undefined ? options.threshold : 0.0,
-          boxes: options.boxes !== undefined ? options.boxes : 0.0,
           colorShadow: options.colorShadow || '#101010',
           colorHighlight: options.colorHighlight || options.colorAccent || '#E84A5F',
         };
 
         this.image = null;
         this.texture = null;
+        this.clusterTexture = null;
         this.program = null;
         this.uniforms = {};
 
         this._initWebGL();
+        this._initClusterTexture();
       }
 
       _hexToRgb(hex) {
@@ -764,14 +1000,17 @@
           uniform float u_scanlines;
           uniform float u_dither;
           uniform float u_rgb_shift;
-
-          uniform float u_grid;
-          uniform float u_waveform;
+          uniform float u_clusters;
           uniform float u_threshold;
-          uniform float u_boxes;
 
           uniform vec3 u_col_shadow;
           uniform vec3 u_col_highlight;
+
+          uniform sampler2D u_cluster_sheet;
+          uniform vec4 u_cluster_pos[12];
+          uniform vec4 u_cluster_src[12];
+          uniform vec3 u_cluster_col[12];
+          uniform int u_num_clusters;
 
           float hash11(float p) {
             p = fract(p * 0.1031);
@@ -813,47 +1052,78 @@
             vec2 uv = v_uv;
             float normDist = clamp(u_distortion / 10.0, 0.0, 1.0);
 
-            // 1. Macroblock Displacements
-            if (normDist > 0.08) {
-              vec2 blockGrid = floor(v_uv * vec2(16.0, 24.0));
-              float blockNoise = hash21(blockGrid + u_seed * 4.19);
-              if (blockNoise > (1.0 - normDist * 0.40)) {
-                float bShiftX = (hash11(blockNoise * 17.31) - 0.5) * (0.04 + normDist * 0.14);
-                float bShiftY = (hash11(blockNoise * 31.7) - 0.5) * (0.01 + normDist * 0.04);
-                uv = clamp(uv + vec2(bShiftX, bShiftY), 0.0, 1.0);
-              }
-            }
-
-            // 2. Vertical Pixel Melting Streaks
-            if (normDist > 0.12) {
-              float colRand = hash11(floor(v_uv.x * 52.0) + u_seed * 8.37);
-              if (colRand > (1.0 - normDist * 0.26)) {
-                float dropStart = hash11(colRand * 43.19);
-                if (v_uv.y > dropStart) {
-                  uv.y = mix(uv.y, dropStart, 0.78);
-                }
-              }
-            }
-
-            // 3. Horizontal Slice Tearing
+            // --- 1. ASYMMETRIC HORIZONTAL SLICE TEARING (HAIRLINES + MED + CHUNKY BANDS) ---
             float sliceFlash = 0.0;
-            if (normDist > 0.02) {
-              float sliceCount = mix(16.0, 56.0, normDist);
-              float sliceIndex = floor(uv.y * sliceCount);
-              float sliceRand = hash11(sliceIndex + u_seed * 13.37);
-              float tearThreshold = 1.0 - (normDist * 0.72);
-              if (sliceRand > tearThreshold) {
-                float shiftMagnitude = (hash11(sliceRand * 91.13) - 0.5) * 2.0;
-                float tearOffset = shiftMagnitude * (0.015 + normDist * 0.11);
-                uv.x = clamp(uv.x + tearOffset, 0.0, 1.0);
-                if (sliceRand > 0.90 && normDist > 0.15) {
-                  sliceFlash = 1.0;
+            
+            // A. Thin hairline slices (1 to 4 px)
+            float hairlineCount = u_resolution.y * 0.28;
+            float hairlineIdx = floor(uv.y * hairlineCount);
+            float hairlineRand = hash11(hairlineIdx + u_seed * 17.31);
+            float thinThreshold = 1.0 - (0.015 + normDist * 0.045);
+            if (hairlineRand > thinThreshold) {
+              float hShift = (hash11(hairlineRand * 43.19) - 0.5) * (0.008 + normDist * 0.045);
+              uv.x = clamp(uv.x + hShift, 0.0, 1.0);
+              if (hairlineRand > 0.98 && normDist > 0.2) sliceFlash = 0.3;
+            }
+
+            // B. Medium displacement bands (6 to 18 px)
+            float medBandCount = 35.0;
+            float medIdx = floor(uv.y * medBandCount);
+            float medRand = hash11(medIdx + u_seed * 29.13);
+            float medThreshold = 1.0 - (0.028 + normDist * 0.08);
+            if (medRand > medThreshold) {
+              float mShift = (hash11(medRand * 61.47) - 0.5) * (0.015 + normDist * 0.07);
+              uv.x = clamp(uv.x + mShift, 0.0, 1.0);
+              if (medRand > 0.96 && normDist > 0.3) sliceFlash = 0.6;
+            }
+
+            // C. Thick chunky macro band (25 to 60 px) - only at higher distortion levels
+            if (normDist > 0.40) {
+              float band1Center = fract(u_seed * 0.382 + 0.23);
+              float band1HalfH = mix(0.015, 0.038, normDist);
+              if (abs(uv.y - band1Center) < band1HalfH) {
+                float b1Shift = (hash11(floor(band1Center * 100.0) + u_seed) > 0.5 ? 1.0 : -1.0) * (0.03 + normDist * 0.08);
+                uv.x = clamp(uv.x + b1Shift, 0.0, 1.0);
+                sliceFlash = 1.0;
+              }
+            }
+
+            // --- 2. DISCRETE 2D MACROBLOCK SHIFTING ---
+            if (normDist > 0.16) {
+              vec2 blockGrid = floor(v_uv * vec2(12.0, 18.0));
+              float blockNoise = hash21(blockGrid + u_seed * 4.19);
+              if (blockNoise > (1.0 - normDist * 0.28)) {
+                float bShiftX = (hash11(blockNoise * 17.31) - 0.5) * (0.03 + normDist * 0.09);
+                uv.x = clamp(uv.x + bShiftX, 0.0, 1.0);
+              }
+            }
+
+            // --- 3. AUTHENTIC DATA CORRUPTION CLUSTER SAMPLING ---
+            // Sampled at displaced uv so horizontal slice tears naturally slice cleanly through them.
+            vec4 clusterOverlay = vec4(0.0);
+            if (u_clusters > 0.005) {
+              for (int i = 0; i < 12; i++) {
+                if (i >= u_num_clusters) break;
+                vec4 cpos = u_cluster_pos[i];
+                if (uv.x >= cpos.x && uv.x < (cpos.x + cpos.z) &&
+                    uv.y >= cpos.y && uv.y < (cpos.y + cpos.w)) {
+                  vec2 localUV = (uv - cpos.xy) / cpos.zw;
+                  vec4 csrc = u_cluster_src[i];
+                  vec2 sheetUV = csrc.xy + localUV * csrc.zw;
+                  vec4 sTex = texture2D(u_cluster_sheet, sheetUV);
+                  if (sTex.a > 0.25) {
+                    clusterOverlay = vec4(u_cluster_col[i], 1.0);
+                    break;
+                  }
                 }
               }
             }
 
-            // 4. Chromatic Aberration
-            float rgbOffsetAmount = (0.002 + normDist * 0.042) * u_rgb_shift;
+            // --- 4. CHROMATIC ABERRATION (VIGNETTE RGB CHANNEL SPLIT) ---
+            // Dialed down ~20% (0.015 multiplier), stronger towards borders than center
+            vec2 toCenter = uv - vec2(0.5);
+            float vig = clamp(dot(toCenter, toCenter) * 3.0, 0.05, 1.0);
+            float rgbOffsetAmount = (0.001 + normDist * 0.015) * u_rgb_shift * vig;
             vec2 rUv = vec2(clamp(uv.x + rgbOffsetAmount, 0.0, 1.0), uv.y);
             vec2 gUv = uv;
             vec2 bUv = vec2(clamp(uv.x - rgbOffsetAmount, 0.0, 1.0), uv.y);
@@ -863,108 +1133,72 @@
             float b = texture2D(u_image, bUv).b;
             vec3 color = vec3(r, g, b);
 
-            if (sliceFlash > 0.5) {
-              color = clamp(color * 1.45 + vec3(0.22), 0.0, 1.0);
+            if (clusterOverlay.a > 0.5) {
+              color = clusterOverlay.rgb;
             }
 
-            // 5. Color Treatment
+            if (sliceFlash > 0.5) {
+              color = clamp(color * 1.30 + vec3(0.18), 0.0, 1.0);
+            } else if (sliceFlash > 0.2) {
+              color = clamp(color * 1.15 + vec3(0.08), 0.0, 1.0);
+            }
+
+            float chromaFringe = abs(r - b);
+
+            // --- 5. COLOR TREATMENT (2-TONE DUOTONE VS COLOR + S-CURVE + CALIBRATED THRESHOLD) ---
+            float tVal = u_threshold * 0.47;
+
             if (u_mode == 0) {
               float lum = dot(color, vec3(0.299, 0.587, 0.114));
-              
-              if (u_threshold > 0.01) {
-                float tVal = u_threshold * 0.94;
+
+              lum = clamp(lum, 0.0, 1.0);
+              lum = (lum - 0.5) * 1.35 + 0.5;
+              lum = clamp(lum, 0.0, 1.0);
+              lum = lum * lum * (3.0 - 2.0 * lum);
+
+              if (u_threshold > 0.005) {
                 float low = 0.5 - (1.0 - tVal) * 0.5;
                 float high = 0.5 + (1.0 - tVal) * 0.5;
                 lum = smoothstep(low, high, lum);
-              } else {
-                lum = smoothstep(0.04, 0.96, lum);
               }
 
               if (u_dither > 0.01) {
                 float bayer = bayer4(gl_FragCoord.xy) - 0.5;
-                lum = clamp(lum + bayer * (0.22 * u_dither), 0.0, 1.0);
+                lum = clamp(lum + bayer * (0.24 * u_dither), 0.0, 1.0);
               }
 
               color = mix(u_col_shadow, u_col_highlight, lum);
+
+              if (u_rgb_shift > 0.01) {
+                vec3 fringeColor = vec3(1.0, 0.23, 0.31);
+                float fringeAmount = chromaFringe * (0.16 * u_rgb_shift);
+                color = mix(color, fringeColor, clamp(fringeAmount * 3.5, 0.0, 0.32));
+              }
             } else {
-              if (u_threshold > 0.01) {
-                float tVal = u_threshold * 0.94;
+              if (u_threshold > 0.005) {
                 vec3 low = vec3(0.5 - (1.0 - tVal) * 0.5);
                 vec3 high = vec3(0.5 + (1.0 - tVal) * 0.5);
                 color = smoothstep(low, high, color);
               } else {
-                color = smoothstep(vec3(0.02), vec3(0.98), color);
+                color = clamp((color - 0.5) * (1.18 + normDist * 0.25) + 0.5, 0.0, 1.0);
               }
 
               if (u_dither > 0.01) {
                 float bayer = bayer4(gl_FragCoord.xy) - 0.5;
-                color = clamp(color + bayer * (0.14 * u_dither), 0.0, 1.0);
+                color = clamp(color + bayer * (0.15 * u_dither), 0.0, 1.0);
               }
             }
 
-            // 6. Film Noise & Dust
-            if (normDist > 0.04) {
-              float grain = (hash21(gl_FragCoord.xy + fract(u_seed)) - 0.5) * (0.15 * normDist);
-              color = clamp(color + vec3(grain), 0.0, 1.0);
-            }
+            // --- 6. GRITTY ARCHIVAL PAPER TEXTURE (ZERO WHITE DOTS) ---
+            float paperGrain = (hash21(gl_FragCoord.xy + fract(u_seed)) - 0.5) * (0.05 + 0.06 * normDist);
+            float rollerTooth = (hash11(gl_FragCoord.x + u_seed * 7.7) - 0.5) * (0.02 + 0.03 * normDist);
+            color = clamp(color + vec3(paperGrain + rollerTooth), 0.0, 1.0);
 
-            // 7. CRT Scanlines
+            // --- 7. INTERLACED CRT SCANLINES ---
             if (u_scanlines > 0.01) {
               float scanline = sin(gl_FragCoord.y * 1.5) * 0.5 + 0.5;
-              float scanDim = mix(1.0, 0.80, scanline * u_scanlines);
+              float scanDim = mix(1.0, 0.78, scanline * u_scanlines);
               color *= scanDim;
-            }
-
-            // 8. Cartesian Grids
-            if (u_grid > 0.01) {
-              float gridSize = max(24.0, min(u_resolution.x, u_resolution.y) / 16.0);
-              vec2 gridCoord = mod(gl_FragCoord.xy, gridSize);
-              float lineX = step(gridCoord.x, 1.0);
-              float lineY = step(gridCoord.y, 1.0);
-              float isLine = max(lineX, lineY);
-
-              float isCross = (step(gridCoord.x, 3.0) + step(gridSize - 3.0, gridCoord.x)) * step(abs(gridCoord.y - 0.5), 1.0)
-                            + (step(gridCoord.y, 3.0) + step(gridSize - 3.0, gridCoord.y)) * step(abs(gridCoord.x - 0.5), 1.0);
-              float gridFactor = clamp(isLine * 0.28 + isCross * 0.65, 0.0, 1.0) * u_grid;
-              vec3 gridCol = (u_mode == 0) ? u_col_highlight : vec3(1.0);
-              color = mix(color, gridCol, gridFactor);
-            }
-
-            // 9. Oscilloscope Waveform
-            if (u_waveform > 0.01) {
-              float waveY = u_resolution.y * 0.58;
-              float pulseCenter = fract(u_seed * 0.37 + 0.42);
-              float pulseDist = abs(v_uv.x - pulseCenter);
-              float pulse = exp(-pulseDist * pulseDist * 320.0) * sin((v_uv.x - pulseCenter) * 120.0) * (u_resolution.y * 0.16);
-              float carrier = sin(v_uv.x * 24.0 + u_seed) * (u_resolution.y * 0.02);
-              float targetY = waveY + pulse + carrier;
-              float distToWave = abs(gl_FragCoord.y - targetY);
-              float waveLine = smoothstep(1.5, 0.0, distToWave) * u_waveform * 0.85;
-              vec3 waveCol = (u_mode == 0) ? u_col_highlight : vec3(1.0, 0.25, 0.35);
-              color = mix(color, waveCol, waveLine);
-            }
-
-            // 10. Specimen Framing Boxes
-            if (u_boxes > 0.01) {
-              vec2 b1_min = vec2(0.14, 0.18) * u_resolution;
-              vec2 b1_max = vec2(0.54, 0.66) * u_resolution;
-              vec2 b2_min = vec2(0.44, 0.38) * u_resolution;
-              vec2 b2_max = vec2(0.86, 0.82) * u_resolution;
-
-              vec2 p = gl_FragCoord.xy;
-              float inB1 = step(b1_min.x, p.x) * step(p.x, b1_max.x) * step(b1_min.y, p.y) * step(p.y, b1_max.y);
-              float edgeB1 = inB1 * max(
-                step(p.x - b1_min.x, 1.0) + step(b1_max.x - p.x, 1.0),
-                step(p.y - b1_min.y, 1.0) + step(b1_max.y - p.y, 1.0)
-              );
-              float inB2 = step(b2_min.x, p.x) * step(p.x, b2_max.x) * step(b2_min.y, p.y) * step(p.y, b2_max.y);
-              float edgeB2 = inB2 * max(
-                step(p.x - b2_min.x, 1.0) + step(b2_max.x - p.x, 1.0),
-                step(p.y - b2_min.y, 1.0) + step(b2_max.y - p.y, 1.0)
-              );
-              float boxLines = clamp(edgeB1 + edgeB2, 0.0, 1.0) * u_boxes * 0.80;
-              vec3 boxCol = (u_mode == 0) ? u_col_highlight : vec3(0.96);
-              color = mix(color, boxCol, boxLines);
             }
 
             gl_FragColor = vec4(color, 1.0);
@@ -1028,12 +1262,15 @@
           scanlines: gl.getUniformLocation(program, 'u_scanlines'),
           dither: gl.getUniformLocation(program, 'u_dither'),
           rgbShift: gl.getUniformLocation(program, 'u_rgb_shift'),
-          grid: gl.getUniformLocation(program, 'u_grid'),
-          waveform: gl.getUniformLocation(program, 'u_waveform'),
+          clusters: gl.getUniformLocation(program, 'u_clusters'),
           threshold: gl.getUniformLocation(program, 'u_threshold'),
-          boxes: gl.getUniformLocation(program, 'u_boxes'),
           colShadow: gl.getUniformLocation(program, 'u_col_shadow'),
           colHighlight: gl.getUniformLocation(program, 'u_col_highlight'),
+          clusterSheet: gl.getUniformLocation(program, 'u_cluster_sheet'),
+          clusterPos: gl.getUniformLocation(program, 'u_cluster_pos'),
+          clusterSrc: gl.getUniformLocation(program, 'u_cluster_src'),
+          clusterCol: gl.getUniformLocation(program, 'u_cluster_col'),
+          numClusters: gl.getUniformLocation(program, 'u_num_clusters'),
         };
 
         this.texture = gl.createTexture();
@@ -1042,6 +1279,36 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      }
+
+      _initClusterTexture() {
+        const gl = this.gl;
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 0]));
+        this.clusterTexture = texture;
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          gl.bindTexture(gl.TEXTURE_2D, this.clusterTexture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+          if (this.image) {
+            this.render();
+          }
+        };
+
+        if (typeof CLUSTER_SHEET_DATA !== 'undefined' && CLUSTER_SHEET_DATA) {
+          img.src = CLUSTER_SHEET_DATA;
+        } else {
+          img.src = '../references/clusters-white.png';
+        }
       }
 
       async loadImage(source) {
@@ -1090,6 +1357,116 @@
         return img;
       }
 
+      _computeClusters() {
+        const clustersVal = parseFloat(this.params.clusters !== undefined ? this.params.clusters : 0.5);
+        if (clustersVal <= 0.005) {
+          return { numClusters: 0, pos: new Float32Array(48), src: new Float32Array(48), col: new Float32Array(36) };
+        }
+
+        const sprites = (typeof CLUSTER_SPRITES !== 'undefined' && CLUSTER_SPRITES) ? CLUSTER_SPRITES : DEFAULT_CLUSTER_SPRITES;
+        const seed = parseFloat(this.params.seed || 42.0);
+        let s = (Math.abs(Math.floor(seed * 1000)) % 2147483647) || 1;
+        const nextRng = () => {
+          s = (s * 16807) % 2147483647;
+          return (s - 1) / 2147483646;
+        };
+        const range = (min, max) => min + nextRng() * (max - min);
+
+        // Categorized pools
+        const checkerboards = sprites.filter(sp => (sp[2]/sp[3]) >= 0.9 && (sp[2]/sp[3]) <= 3.0 && (sp[2]*sp[3]) >= 8000);
+        const horizBars = sprites.filter(sp => (sp[2]/sp[3]) >= 3.5 && sp[2] >= 120);
+        const vertBars = sprites.filter(sp => (sp[2]/sp[3]) <= 0.6 && sp[3] >= 60);
+        const mediumBlocks = sprites.filter(sp => 0.7 <= (sp[2]/sp[3]) && (sp[2]/sp[3]) <= 2.5 && 3000 <= (sp[2]*sp[3]) && (sp[2]*sp[3]) < 25000);
+
+        const pool = [];
+        const pickN = (arr, n) => {
+          const copy = [...arr];
+          for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(nextRng() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+          }
+          return copy.slice(0, n);
+        };
+
+        pool.push(...pickN(checkerboards, 2));
+        pool.push(...pickN(horizBars, 3));
+        pool.push(...pickN(vertBars, 2));
+        pool.push(...pickN(mediumBlocks, 3));
+
+        // Shuffle pool
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(nextRng() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        const numClusters = Math.min(12, Math.max(1, Math.round(clustersVal * 9)));
+        const chosen = pool.slice(0, numClusters);
+        chosen.sort((a, b) => (b[2]*b[3]) - (a[2]*a[3]));
+
+        const pos = new Float32Array(48);
+        const src = new Float32Array(48);
+        const col = new Float32Array(36);
+
+        const canvasW = this.canvas.width || 800;
+        const canvasH = this.canvas.height || 600;
+
+        const colorPalette = [
+          [1.0, 0.12, 0.24], // Vivid Crimson
+          [0.0, 0.92, 1.0],  // Vivid Cyan
+          [1.0, 0.88, 0.08], // Technical Yellow
+          [1.0, 1.0, 1.0],   // Pure White
+          [0.12, 1.0, 0.43]  // Digital Green
+        ];
+
+        for (let i = 0; i < chosen.length; i++) {
+          const sp = chosen[i];
+          const sx = sp[0], sy = sp[1], sw = sp[2], sh = sp[3];
+          const aspect = sw / sh;
+
+          // Source in normalized sheet UV (3000 x 1500)
+          src[i * 4 + 0] = sx / 3000.0;
+          src[i * 4 + 1] = sy / 1500.0;
+          src[i * 4 + 2] = sw / 3000.0;
+          src[i * 4 + 3] = sh / 1500.0;
+
+          let twNorm;
+          if (aspect > 4.0) {
+            twNorm = range(0.12, 0.28);
+          } else if (aspect < 0.6) {
+            twNorm = range(0.025, 0.07);
+          } else {
+            twNorm = range(0.08, 0.18);
+          }
+
+          let thNorm = Math.max(0.01, (twNorm / aspect) * (canvasW / canvasH));
+          if (thNorm > 0.32) {
+            thNorm = 0.32;
+            twNorm = Math.max(0.01, (thNorm * aspect) * (canvasH / canvasW));
+          }
+
+          const bxNorm = range(0.0, Math.max(0.0, 1.0 - twNorm));
+          const byNorm = range(0.0, Math.max(0.0, 1.0 - thNorm));
+
+          pos[i * 4 + 0] = bxNorm;
+          pos[i * 4 + 1] = byNorm;
+          pos[i * 4 + 2] = twNorm;
+          pos[i * 4 + 3] = thNorm;
+
+          if (this.params.mode === 'duotone') {
+            col[i * 3 + 0] = 1.0;
+            col[i * 3 + 1] = 1.0;
+            col[i * 3 + 2] = 1.0;
+          } else {
+            const c = colorPalette[Math.floor(nextRng() * colorPalette.length)];
+            col[i * 3 + 0] = c[0];
+            col[i * 3 + 1] = c[1];
+            col[i * 3 + 2] = c[2];
+          }
+        }
+
+        return { numClusters: chosen.length, pos, src, col };
+      }
+
       setParams(newParams = {}) {
         Object.assign(this.params, newParams);
         this.render();
@@ -1108,10 +1485,8 @@
         gl.uniform1f(this.uniforms.scanlines, parseFloat(this.params.scanlines));
         gl.uniform1f(this.uniforms.dither, parseFloat(this.params.dither));
         gl.uniform1f(this.uniforms.rgbShift, parseFloat(this.params.rgbShift));
-        gl.uniform1f(this.uniforms.grid, parseFloat(this.params.grid || 0.0));
-        gl.uniform1f(this.uniforms.waveform, parseFloat(this.params.waveform || 0.0));
+        gl.uniform1f(this.uniforms.clusters, parseFloat(this.params.clusters !== undefined ? this.params.clusters : 0.5));
         gl.uniform1f(this.uniforms.threshold, parseFloat(this.params.threshold || 0.0));
-        gl.uniform1f(this.uniforms.boxes, parseFloat(this.params.boxes || 0.0));
 
         const shadowRgb = this._hexToRgb(this.params.colorShadow);
         const highlightRgb = this._hexToRgb(this.params.colorHighlight || '#E84A5F');
@@ -1122,6 +1497,18 @@
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
         gl.uniform1i(this.uniforms.image, 0);
+
+        if (this.clusterTexture) {
+          gl.activeTexture(gl.TEXTURE1);
+          gl.bindTexture(gl.TEXTURE_2D, this.clusterTexture);
+          gl.uniform1i(this.uniforms.clusterSheet, 1);
+        }
+
+        const clusterData = this._computeClusters();
+        gl.uniform1i(this.uniforms.numClusters, clusterData.numClusters);
+        gl.uniform4fv(this.uniforms.clusterPos, clusterData.pos);
+        gl.uniform4fv(this.uniforms.clusterSrc, clusterData.src);
+        gl.uniform3fv(this.uniforms.clusterCol, clusterData.col);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
       }
@@ -1173,17 +1560,11 @@
     const sliderRgb = document.getElementById('sliderRgb');
     const dispRgb = document.getElementById('dispRgb');
 
-    const sliderGrid = document.getElementById('sliderGrid');
-    const dispGrid = document.getElementById('dispGrid');
-
-    const sliderWaveform = document.getElementById('sliderWaveform');
-    const dispWaveform = document.getElementById('dispWaveform');
+    const sliderClusters = document.getElementById('sliderClusters');
+    const dispClusters = document.getElementById('dispClusters');
 
     const sliderThreshold = document.getElementById('sliderThreshold');
     const dispThreshold = document.getElementById('dispThreshold');
-
-    const sliderBoxes = document.getElementById('sliderBoxes');
-    const dispBoxes = document.getElementById('dispBoxes');
 
     const btnModeDuotone = document.getElementById('btnModeDuotone');
     const btnModeColor = document.getElementById('btnModeColor');
@@ -1193,6 +1574,16 @@
     const hudRes = document.getElementById('hudRes');
     const hudDist = document.getElementById('hudDist');
     const hudMode = document.getElementById('hudMode');
+
+    // Zoom and Pan Elements
+    const canvasViewport = document.getElementById('canvasViewport');
+    const canvasTransformContainer = document.getElementById('canvasTransformContainer');
+    const btnZoomIn = document.getElementById('btnZoomIn');
+    const btnZoomOut = document.getElementById('btnZoomOut');
+    const btnZoomFit = document.getElementById('btnZoomFit');
+    const btnZoomReset = document.getElementById('btnZoomReset');
+    const zoomPercent = document.getElementById('zoomPercent');
+    const zoomPanHint = document.getElementById('zoomPanHint');
 
     function getDistortionDesc(val) {
       if (val <= 2) return 'Subtle Archival Film & Grain';
@@ -1235,28 +1626,16 @@
       renderer.setParams({ rgbShift: val });
     });
 
-    sliderGrid.addEventListener('input', (e) => {
+    sliderClusters.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      dispGrid.textContent = `${Math.round(val * 100)}%`;
-      renderer.setParams({ grid: val });
-    });
-
-    sliderWaveform.addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value);
-      dispWaveform.textContent = `${Math.round(val * 100)}%`;
-      renderer.setParams({ waveform: val });
+      dispClusters.textContent = `${Math.round(val * 100)}%`;
+      renderer.setParams({ clusters: val });
     });
 
     sliderThreshold.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
       dispThreshold.textContent = `${Math.round(val * 100)}%`;
       renderer.setParams({ threshold: val });
-    });
-
-    sliderBoxes.addEventListener('input', (e) => {
-      const val = parseFloat(e.target.value);
-      dispBoxes.textContent = `${Math.round(val * 100)}%`;
-      renderer.setParams({ boxes: val });
     });
 
     btnRerollSeed.addEventListener('click', () => {
@@ -1285,25 +1664,40 @@
     btnModeDuotone.addEventListener('click', () => setMode('duotone'));
     btnModeColor.addEventListener('click', () => setMode('color'));
 
-    // Quick Preset Buttons
+    // Quick Preset Buttons (SUBTLE, UNTITLED, TOTAL DECAY)
     document.querySelectorAll('.btn-preset[data-dist]').forEach(btn => {
       btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-preset[data-dist]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
         const dist = parseInt(btn.dataset.dist, 10);
-        const scan = parseFloat(btn.dataset.scan);
-        const dither = parseFloat(btn.dataset.dither);
+        const rgb = parseFloat(btn.dataset.rgb || 0.35);
+        const dither = parseFloat(btn.dataset.dither || 0.45);
+        const scan = parseFloat(btn.dataset.scan || 0.65);
+        const clusters = parseFloat(btn.dataset.clusters || 0.50);
+        const threshold = parseFloat(btn.dataset.threshold || 0.0);
 
         sliderDistortion.value = dist;
-        sliderScanlines.value = scan;
+        sliderRgb.value = rgb;
         sliderDither.value = dither;
+        sliderScanlines.value = scan;
+        sliderClusters.value = clusters;
+        sliderThreshold.value = threshold;
 
         updateDistortionUI(dist);
-        dispScanlines.textContent = `${Math.round(scan * 100)}%`;
+        dispRgb.textContent = `${Math.round(rgb * 100)}%`;
         dispDither.textContent = `${Math.round(dither * 100)}%`;
+        dispScanlines.textContent = `${Math.round(scan * 100)}%`;
+        dispClusters.textContent = `${Math.round(clusters * 100)}%`;
+        dispThreshold.textContent = `${Math.round(threshold * 100)}%`;
 
         renderer.setParams({
           distortion: dist,
-          scanlines: scan,
+          rgbShift: rgb,
           dither: dither,
+          scanlines: scan,
+          clusters: clusters,
+          threshold: threshold,
           seed: Math.random() * 100.0
         });
       });
@@ -1403,6 +1797,7 @@
       try {
         const img = await renderer.loadImage(file);
         hudRes.innerHTML = `RES: <strong>${img.naturalWidth || img.width} × ${img.naturalHeight || img.height}</strong>`;
+        fitToViewport();
       } catch (err) {
         alert('Failed to load image: ' + err.message);
       }
@@ -1449,69 +1844,159 @@
       }
     });
 
-    // Generate Synthetic Sample Image (Editorial Broadside Motif)
-    function generateSyntheticSample() {
-      const offCanvas = document.createElement('canvas');
-      offCanvas.width = 1000;
-      offCanvas.height = 1200;
-      const ctx = offCanvas.getContext('2d');
+    // Zoom & Pan State Controller
+    let zoomLevel = 1.0;
+    let panX = 0;
+    let panY = 0;
+    let isSpaceDown = false;
+    let isPanning = false;
+    let startX = 0;
+    let startY = 0;
 
-      // Dark background
-      ctx.fillStyle = '#121212';
-      ctx.fillRect(0, 0, 1000, 1200);
+    function updateTransform() {
+      canvasTransformContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+      zoomPercent.textContent = `${Math.round(zoomLevel * 100)}%`;
+    }
 
-      // Geometric grid & circles
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.lineWidth = 2;
-      for (let x = 50; x < 1000; x += 100) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, 1200);
-        ctx.stroke();
+    function fitToViewport() {
+      if (!canvas.width || !canvas.height) return;
+      const vRect = canvasViewport.getBoundingClientRect();
+      const padding = 50;
+      const availW = Math.max(vRect.width - padding, 80);
+      const availH = Math.max(vRect.height - padding, 80);
+
+      const scaleW = availW / canvas.width;
+      const scaleH = availH / canvas.height;
+      zoomLevel = Math.min(scaleW, scaleH);
+      panX = 0;
+      panY = 0;
+      updateTransform();
+    }
+
+    function resetZoom() {
+      zoomLevel = 1.0;
+      panX = 0;
+      panY = 0;
+      updateTransform();
+    }
+
+    function zoomStep(factor) {
+      const newZoom = Math.min(Math.max(zoomLevel * factor, 0.05), 10.0);
+      zoomLevel = newZoom;
+      updateTransform();
+    }
+
+    btnZoomIn.addEventListener('click', () => zoomStep(1.2));
+    btnZoomOut.addEventListener('click', () => zoomStep(1 / 1.2));
+    btnZoomFit.addEventListener('click', fitToViewport);
+    btnZoomReset.addEventListener('click', resetZoom);
+
+    // Mouse wheel zoom centered on cursor
+    canvasViewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = canvasViewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left - rect.width / 2;
+      const mouseY = e.clientY - rect.top - rect.height / 2;
+
+      const factor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
+      const newZoom = Math.min(Math.max(zoomLevel * factor, 0.05), 10.0);
+
+      panX = mouseX - (mouseX - panX) * (newZoom / zoomLevel);
+      panY = mouseY - (mouseY - panY) * (newZoom / zoomLevel);
+      zoomLevel = newZoom;
+      updateTransform();
+    }, { passive: false });
+
+    // Spacebar Pan Hand State
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        if (activeTag === 'input' || activeTag === 'textarea') return;
+        e.preventDefault();
+        if (!isSpaceDown) {
+          isSpaceDown = true;
+          canvasViewport.classList.add('space-pan-ready');
+          zoomPanHint.classList.add('active');
+        }
       }
+    });
 
-      // Halftone-like gradient circle
-      const grad = ctx.createRadialGradient(500, 520, 50, 500, 520, 360);
-      grad.addColorStop(0, '#FFFFFF');
-      grad.addColorStop(0.5, '#E84A5F');
-      grad.addColorStop(1, '#121212');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(500, 520, 340, 0, Math.PI * 2);
-      ctx.fill();
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        isSpaceDown = false;
+        canvasViewport.classList.remove('space-pan-ready');
+        zoomPanHint.classList.remove('active');
+        if (!isPanning) {
+          canvasViewport.classList.remove('is-panning');
+        }
+      }
+    });
 
-      // Sharp architectural box
-      ctx.fillStyle = '#181818';
-      ctx.fillRect(280, 400, 440, 260);
-      ctx.strokeStyle = '#E84A5F';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(280, 400, 440, 260);
+    canvasViewport.addEventListener('mousedown', (e) => {
+      if (isSpaceDown || e.button === 1) {
+        e.preventDefault();
+        isPanning = true;
+        startX = e.clientX - panX;
+        startY = e.clientY - panY;
+        canvasViewport.classList.add('is-panning');
+      }
+    });
 
-      // Monospace typographic layout
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 38px monospace';
-      ctx.fillText('[ UNTITLED.JPG ]', 320, 480);
-      ctx.font = '24px monospace';
-      ctx.fillStyle = '#E84A5F';
-      ctx.fillText('PSYCHOPHYSICS OF VISION', 320, 540);
-      ctx.fillStyle = '#AAAAAA';
-      ctx.font = '18px monospace';
-      ctx.fillText('SYS_LOG // VECTOR_SPACE // 2026', 320, 590);
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    });
 
-      return offCanvas;
+    window.addEventListener('mouseup', () => {
+      if (isPanning) {
+        isPanning = false;
+        canvasViewport.classList.remove('is-panning');
+      }
+    });
+
+    canvasViewport.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.floating-zoom-bar') || e.target.closest('.floating-actions-bar') || e.target.closest('.stage-hud')) return;
+      fitToViewport();
+    });
+
+    window.addEventListener('resize', () => {
+      updateTransform();
+    });
+
+    // Load Reference Sample Image (sample.jpg)
+    function loadSampleReferenceImage() {
+      const img = new Image();
+      img.onload = () => {
+        renderer.loadImage(img);
+        hudRes.innerHTML = `RES: <strong>${img.naturalWidth || img.width} × ${img.naturalHeight || img.height} (SAMPLE)</strong>`;
+        fitToViewport();
+      };
+      img.onerror = () => {
+        const fallback = new Image();
+        fallback.onload = () => {
+          renderer.loadImage(fallback);
+          hudRes.innerHTML = `RES: <strong>${fallback.naturalWidth || fallback.width} × ${fallback.naturalHeight || fallback.height} (SAMPLE)</strong>`;
+          fitToViewport();
+        };
+        fallback.src = '../references/sample.jpg';
+      };
+
+      if (typeof SAMPLE_IMAGE_DATA !== 'undefined' && SAMPLE_IMAGE_DATA) {
+        img.src = SAMPLE_IMAGE_DATA;
+      } else {
+        img.src = '../references/sample.jpg';
+      }
     }
 
     btnSample.addEventListener('click', () => {
-      const sample = generateSyntheticSample();
-      renderer.loadImage(sample);
-      hudRes.innerHTML = `RES: <strong>1000 × 1200 (SAMPLE)</strong>`;
+      loadSampleReferenceImage();
     });
 
     // Auto-load sample on startup
     window.addEventListener('DOMContentLoaded', () => {
-      const sample = generateSyntheticSample();
-      renderer.loadImage(sample);
-      hudRes.innerHTML = `RES: <strong>1000 × 1200 (SAMPLE)</strong>`;
+      loadSampleReferenceImage();
     });
   </script>
 </body>

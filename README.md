@@ -60,7 +60,7 @@ You can launch the studio in two ways:
 
 #### How to Use:
 1. **Upload**: Drag & drop any image (`.png`, `.jpg`, `.webp`) directly onto the canvas stage, or click **📂 LOAD IMAGE** to choose a file from your disk. Click **🎲 TEST SAMPLE** to instantly generate an editorial test poster.
-2. **Tune**: Select between **Duotone** and **Full Color**, adjust the master **Distortion Scale** (`0` to `10`), tweak the **Telemetry & Overlays** sliders (`scanlines`, `dither`, `grid`, `waveform`, `threshold`, `boxes`), and click **⟳ REROLL SEED** to randomize tears.
+2. **Tune**: Select between **Duotone** and **Full Color**, adjust the master **Distortion Scale** (`0` to `10`), or pick one of the 3 calibrated style presets (**SUBTLE**, **UNTITLED**, **TOTAL DECAY**). Fine-tune via **Telemetry & Overlays** sliders (`scanlines`, `dither`, `rgbShift`, `clusters`, `threshold`), and click **⟳ REROLL SEED** to randomize tears.
 3. **Palette**: Pick between the **Untitled Coral** (black-crimson) or **Monochrome Silver** (black-white) pills, or enter custom hex codes in the **SHADOW** and **HIGHLIGHT** fields.
 4. **Download**: Click **⬇ EXPORT HI-RES PNG** to instantly save the rendered glitch at full native source resolution, or click **📋 COPY TO CLIPBOARD** to paste directly into design tools.
 
@@ -76,11 +76,13 @@ Process images directly from your terminal:
 # Install requirements
 pip install pillow numpy
 
-# Run signature Duotone at Level 5
-python script/glitchit.py your_photo.jpg -o output.png --mode duotone --distortion 5
+# Run quick style preset: subtle, untitled, or total-decay
+python script/glitchit.py your_photo.jpg -o output.png --preset subtle
+python script/glitchit.py your_photo.jpg -o output.png --preset untitled
+python script/glitchit.py your_photo.jpg -o output.png --preset total-decay
 
-# Editorial Glitch with Grid, Waveform, Zine Threshold, and Specimen Boxes
-python script/glitchit.py your_photo.jpg -o output.png --distortion 5 --grid 0.4 --waveform 0.5 --threshold 0.35 --boxes 0.6
+# Run signature Duotone at Level 5 with custom clusters
+python script/glitchit.py your_photo.jpg -o output.png --mode duotone --distortion 5 --clusters 0.4
 
 # Aggressive Color Glitch at Level 8
 python script/glitchit.py your_photo.jpg -o output.png --mode color --distortion 8
@@ -99,17 +101,16 @@ Every parameter supported by the `glitchit.py` command-line interface:
 | :--- | :--- | :--- | :--- |
 | **`input`** | Positional | *Required* | Path to the source image file (`.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`). |
 | **`-o, --output`** | String | `output-glitch.png` | Destination file path for the glitched output image. |
-| **`-d, --distortion`** | Integer (`0` to `10`) | `5` | Master corruption scale. Controls horizontal slice tears, block displacement rate, vertical pixel melt streaks, and stochastic noise bursts without fractional values. |
-| **`-m, --mode`** | `duotone` \| `color` | `duotone` | **`duotone`**: Pure 2-tone quantization interpolating between `--shadow` and `--highlight`.<br>**`color`**: Preserves full RGB color spectrum with high-contrast saturation and chromatic separation. |
+| **`-p, --preset`** | `subtle` \| `untitled` \| `total-decay` | `None` | Quick curated aesthetic preset: **`subtle`** (aberration 20%, dither 30%, scanlines 40%, clusters 20%, threshold 5%), **`untitled`** (balanced mid-range), **`total-decay`** (max saturation and corruption). |
+| **`-d, --distortion`** | Integer (`0` to `10`) | `5` | Master corruption scale. Calibrates horizontal displacement bands (Level 0: 2–3 bands; Level 10: 10–15 bands with 5% thick, 25% medium, 70% thin hairlines), discrete block displacements, and noise bursts. |
+| **`-m, --mode`** | `duotone` \| `color` | `duotone` | **`duotone`**: Pure 2-tone quantization interpolating between `--shadow` and `--highlight` with punchy S-curve contrast and subtle tear fringe bleed.<br>**`color`**: Preserves full RGB color spectrum with high-contrast saturation and chromatic separation. |
 | **`--shadow`** | Hex string | `#101010` | Darkest tonal anchor for duotone mode (default: Midnight Charcoal). |
 | **`--highlight`** | Hex string | `#E84A5F` | Brightest tonal anchor for duotone mode (default: Coral Crimson). |
 | **`--scanlines`** | Float (`0.0` – `1.0`) | `0.65` | CRT television raster line intensity. Applies alternating horizontal row dimming based on a sine modulation wave. |
 | **`--dither`** | Float (`0.0` – `1.0`) | `0.45` | Bayer 4x4 ordered matrix halftone dither intensity. Converts smooth gradient ramps into crisp, tactile risograph/photocopy dots. |
-| **`--rgb-shift`** | Float (`0.0` – `1.0`) | `0.75` | Chromatic aberration split. Offsets the Red channel horizontally to the right and the Blue channel to the left. |
-| **`--grid`** | Float (`0.0` – `1.0`) | `0.0` | Cartesian technical coordinate grid overlay. Draws fine 1px orthogonal grid lines with 5px crosshair tick marks (`+`) at line intersections. |
-| **`--waveform`** | Float (`0.0` – `1.0`) | `0.0` | Oscilloscope audio frequency / EKG wave pulse. Draws a luminous signal wave that pulses and traverses horizontally across slice tear seams. |
-| **`--threshold`** | Float (`0.0` – `1.0`) | `0.0` | High-contrast zine thresholding. Applies a steep transfer curve that crushes midtones into deep raw ink shadows and blown paper highlights. |
-| **`--boxes`** | Float (`0.0` – `1.0`) | `0.0` | Technical specimen framing boxes. Overlays asymmetric 1px wireframe bounding rectangles with 90° corner tick brackets framing focal areas. |
+| **`--rgb-shift`** | Float (`0.0` – `1.0`) | `0.35` | Calibrated chromatic aberration split with vignette weighting. Offsets Red channel to the right and Blue channel to the left; centers remain sharp while outer borders and corners receive strong optical lens separation. In duotone mode, leaves subtle registration plate fringe accents along slice tears. |
+| **`--clusters`** | Float (`0.0` – `1.0`) | `0.5` | Data corruption pixel clusters plotted behind distortions and textures. Multi-scale rectangular byte blocks scattered across elevation bands; affected by horizontal tears, RGB splits, halftone dither, and paper grain. |
+| **`--threshold`** | Float (`0.0` – `1.0`) | `0.0` | Calibrated high-contrast zine thresholding. Crushes midtones into deep raw ink shadows and blown paper highlights (calibrated so 100% matches the maximum stylistic ceiling). |
 | **`--seed`** | Integer | `42` | Pseudo-random number generator seed. Ensures 100% deterministic, repeatable slice tears, block offsets, and noise patterns across runs. |
 
 ---
